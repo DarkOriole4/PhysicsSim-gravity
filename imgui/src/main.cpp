@@ -83,8 +83,6 @@ int main(int, char**)
 
     // Setup Dear ImGui style
     ImGui::Spectrum::StyleColorsSpectrum();
-    //ImGui::StyleColorsDark();
-    //ImGui::StyleColorsLight();
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -95,24 +93,67 @@ int main(int, char**)
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     // Load Fonts
-    // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
-    // - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
-    // - If the file cannot be loaded, the function will return a nullptr. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
-    // - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
-    // - Use '#define IMGUI_ENABLE_FREETYPE' in your imconfig file to use Freetype for higher quality font rendering.
-    // - Read 'docs/FONTS.md' for more instructions and details.
-    // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
-    // - Our Emscripten build process allows embedding fonts to be accessible at runtime from the "fonts/" folder. See Makefile.emscripten for details.
-    //io.Fonts->AddFontDefault();
-    //io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\segoeui.ttf", 18.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
     io.Fonts->AddFontFromFileTTF("../misc/fonts/Roboto-Medium.ttf", 16.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
-    //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
-    //IM_ASSERT(font != nullptr);
 
     // OPENGL SHADER SETUP
+    
+    // vertex shader source code
+    char *vsSrc =
+    "#version 330 core\n                                    \
+    layout (location = 0) in vec3 inPosition;              \
+    void main()                                            \    
+    {                                                      \
+        gl_Position = vec4(inPosition, 1.0);                \
+    }";
+
+    // fragment shader source code
+    char *fsSrc =
+    "#version 330 core\n                                    \
+    out vec4 fragColor;                                    \
+    void main()                                            \    
+    {                                                      \
+        fragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);           \
+    }";
+
+    // create program object
     unsigned int pId = glCreateProgram();
+
+    float vertices[] = {
+    -0.8f, -0.6f, 0.0f,
+    0.3f, -0.4f, 0.0f,
+    0.0f, 0.2f, 0.0f};
+
+
+    // create shaders
+    unsigned int vertexShaderId = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShaderId, 1, &vsSrc, NULL);
+    glCompileShader(vertexShaderId);
+
+    unsigned int fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShaderId, 1, &fsSrc, NULL);
+    glCompileShader(fragmentShaderId);
+
+    // attachment of shaders to program object
+    glAttachShader(pId, vertexShaderId);
+    glAttachShader(pId, fragmentShaderId);
+
+    glLinkProgram(pId);
+
+    // buffer
+    unsigned int vertexArray;
+    unsigned int vertexBuffer;
+    glGenVertexArrays(1, &vertexArray);
+    glGenBuffers(1, &vertexBuffer);
+
+    glBindVertexArray(vertexArray);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+
+    glEnableVertexAttribArray(0);
+
 
     // Main loop
 #ifdef __EMSCRIPTEN__
@@ -141,8 +182,13 @@ int main(int, char**)
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
+        
         glClearColor(0.05f, 0.05f, 0.06f, 0);
         glClear(GL_COLOR_BUFFER_BIT);
+        
+        glUseProgram(pId);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
