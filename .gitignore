@@ -8,3 +8,4 @@ imgui/src/imgui_tables.o
 imgui/src/imgui_widgets.o
 imgui/src/main.o
 imgui/src/imgui.o
+.vscode/settings.json
