@@ -1,0 +1,10 @@
+imgui/src/glad.o
+imgui/src/imgui_demo.o
+imgui/src/imgui_draw.o
+imgui/src/imgui_impl_glfw.o
+imgui/src/imgui_impl_opengl3.o
+imgui/src/imgui_spectrum.o
+imgui/src/imgui_tables.o
+imgui/src/imgui_widgets.o
+imgui/src/main.o
+imgui/src/imgui.o

@@ -8,17 +8,21 @@
 // - Introduction, links and more at the top of imgui.cpp
 
 // @ts-ignore
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 #include <stdio.h>
 #define GL_SILENCE_DEPRECATION
 #define GLFW_INCLUDE_NONE
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #endif
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
-#include "imgui_spectrum.h"
-#include "glad.h"
+#include <imgui_spectrum.h>
+#include <glad.h>
+#include <iostream>
+#include <fstream>
+
+using namespace std;
 
 // [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
 // To link with VS2010-era libraries, VS2015+ requires linking with legacy_stdio_definitions.lib, which we do using this pragma.
@@ -35,6 +39,29 @@
 static void glfw_error_callback(int error, const char* description)
 {
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
+}
+
+char* loadShader(const char* path) {
+    fstream file(path, ios::in); // open file
+    
+    if (!file.is_open()) {
+        exit(1);
+    }
+
+    file.seekg(0, std::ios::end);
+    std::streamsize size = file.tellg(); // figure out buffer size
+    file.seekg(0, std::ios::beg);
+    
+    char* buffer = new char[size + 1]; // allocate a buffer for the file
+    if (!file.read(buffer, size)) {
+        cerr << "Error reading file: " << path << endl;
+        delete[] buffer;
+        return nullptr;
+    }
+    
+    file.close();
+    buffer[size] = '\0';
+    return buffer;
 }
 
 // Main code
@@ -60,11 +87,11 @@ int main(int, char**)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
 #else
     // GL 3.0 + GLSL 130
-    const char* glsl_version = "#version 130";
+    const char* glsl_version = "#version 330";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-    //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
 #endif
 
     // Create window with graphics context
@@ -98,22 +125,11 @@ int main(int, char**)
     // OPENGL SHADER SETUP
     
     // vertex shader source code
-    char *vsSrc =
-    "#version 330 core\n                                    \
-    layout (location = 0) in vec3 inPosition;              \
-    void main()                                            \    
-    {                                                      \
-        gl_Position = vec4(inPosition, 1.0);                \
-    }";
+    char* vsSrc = loadShader("../shaders/draw_triangle.vert");
+    cout << "Code: " << vsSrc << endl;
 
     // fragment shader source code
-    char *fsSrc =
-    "#version 330 core\n                                    \
-    out vec4 fragColor;                                    \
-    void main()                                            \    
-    {                                                      \
-        fragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);           \
-    }";
+    char* fsSrc = loadShader("../shaders/draw_triangle.frag");
 
     // create program object
     unsigned int pId = glCreateProgram();
@@ -126,12 +142,35 @@ int main(int, char**)
 
     // create shaders
     unsigned int vertexShaderId = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShaderId, 1, &vsSrc, NULL);
-    glCompileShader(vertexShaderId);
-
     unsigned int fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShaderId, 1, &fsSrc, NULL);
+
+    if (vsSrc != nullptr && fsSrc != nullptr) {
+        glShaderSource(vertexShaderId, 1, &vsSrc, NULL);
+        delete []vsSrc;
+
+        glShaderSource(fragmentShaderId, 1, &fsSrc, NULL);
+        delete []fsSrc;
+    }
+
+    glCompileShader(vertexShaderId);
     glCompileShader(fragmentShaderId);
+
+    GLint success;
+    GLchar infoLog[512];
+
+    // Check vertex shader compilation
+    glGetShaderiv(vertexShaderId, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(vertexShaderId, 512, NULL, infoLog);
+        std::cout << "Vertex shader compilation failed:\n" << infoLog << std::endl;
+    }
+
+    // Check fragment shader compilation
+    glGetShaderiv(fragmentShaderId, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(fragmentShaderId, 512, NULL, infoLog);
+        std::cout << "Fragment shader compilation failed:\n" << infoLog << std::endl;
+    }
 
     // attachment of shaders to program object
     glAttachShader(pId, vertexShaderId);
