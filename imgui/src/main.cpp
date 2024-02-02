@@ -126,7 +126,6 @@ int main(int, char**)
     
     // vertex shader source code
     char* vsSrc = loadShader("../shaders/draw_triangle.vert");
-    cout << "Code: " << vsSrc << endl;
 
     // fragment shader source code
     char* fsSrc = loadShader("../shaders/draw_triangle.frag");
@@ -134,10 +133,12 @@ int main(int, char**)
     // create program object
     unsigned int pId = glCreateProgram();
 
+    // define a triangle
     float vertices[] = {
-    -0.8f, -0.6f, 0.0f,
-    0.3f, -0.4f, 0.0f,
-    0.0f, 0.2f, 0.0f};
+    // vertex data    |   color data
+    -0.8f, -0.6f, 0.0f, 1.0f, 0.0f, 0.0f,
+    0.3f, -0.4f, 0.0f, 0.0f, 1.0f, 0.0f,
+    0.0f, 0.2f, 0.0f, 0.0f, 0.0f, 1.0f};
 
 
     // create shaders
@@ -189,9 +190,12 @@ int main(int, char**)
 
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
-
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    // color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3* sizeof(float)));
+    glEnableVertexAttribArray(1);
 
 
     // Main loop
