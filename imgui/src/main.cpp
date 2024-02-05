@@ -21,6 +21,9 @@
 #include <glad.h>
 #include <iostream>
 #include <fstream>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 using namespace std;
 
@@ -136,9 +139,9 @@ int main(int, char**)
     // define a triangle
     float vertices[] = {
     // vertex data    |   color data
-    -0.8f, -0.6f, 0.0f, 1.0f, 0.0f, 0.0f,
-    0.3f, -0.4f, 0.0f, 0.0f, 1.0f, 0.0f,
-    0.0f, 0.2f, 0.0f, 0.0f, 0.0f, 1.0f};
+    -0.866f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+    0.866f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
 
     // create shaders
@@ -197,6 +200,15 @@ int main(int, char**)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3* sizeof(float)));
     glEnableVertexAttribArray(1);
 
+    // set uniforms
+    // int radiusLocation = glGetUniformLocation(pId, "aRadius");
+    // int centerPosLocation = glGetUniformLocation(pId, "centerPos");
+    // if (radiusLocation == -1 || centerPosLocation == -1) {
+    //     cout << "failed to locate uniform(s)" << endl;
+    // }
+    // glUseProgram(pId);
+    // glUniform1f(radiusLocation, 0.2f);
+    // glUniform2f(centerPosLocation, 0.0f, 0.0f);
 
     // Main loop
 #ifdef __EMSCRIPTEN__
@@ -226,10 +238,32 @@ int main(int, char**)
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
         
-        glClearColor(0.05f, 0.05f, 0.06f, 0);
+        glClearColor(0.05f, 0.05f, 0.06f, 0); // background color
         glClear(GL_COLOR_BUFFER_BIT);
-        
+
+    // SET UNIFORMS ---------------------------
+        int matrixLocation = glGetUniformLocation(pId, "matrix");
+        if (matrixLocation == -1) {
+            cout << "failed to locate uniform(s)" << endl;
+        }
+
+        float sceneScale = 0.003;
+        glm::mat4 projection = glm::ortho(-(display_w / 2) * sceneScale, display_w / 2 * sceneScale, -(display_h / 2) * 0.75f * sceneScale, display_h / 2 * 0.75f *sceneScale, 0.01f, 100.0f); //ortho projection
+        // define ortho projection matrix, also sets up the scene coordinates and scale. The center of the screen is now (0, 0) [ 0.75 is a correction for the aspect ratio ]
+
+        glm::mat4 view = glm::lookAt(
+        glm::vec3(0,1,1), // Camera is at (4,3,3), in World Space
+        glm::vec3(0,0,0), // and looks at the origin
+        glm::vec3(0,0,-1)  // Head is up (set to 0,-1,0 to look upside-down)
+        );
+
+        glm::mat4 model = glm::mat4(1.0f); // scale model by 1 and place at (0,0)
+
+        glm::mat4 mvp = projection * view * model;
         glUseProgram(pId);
+        glUniformMatrix4fv(matrixLocation, 1, GL_FALSE, &mvp[0][0]);
+        // -------------------------------
+        
         glDrawArrays(GL_TRIANGLES, 0, 3);
         
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
