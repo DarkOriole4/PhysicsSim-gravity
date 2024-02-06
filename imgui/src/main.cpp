@@ -25,6 +25,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <sim_headers.h>
 
 using namespace std;
 
@@ -210,18 +211,8 @@ int main(int, char**)
         // SIMULATION STUFF
         int particle_count = 900; //don't set higher than 900
         glm::vec2 translations[particle_count];
+        simulate(translations, particle_count);
 
-        int index = 0;
-        for (int i = 0; i < sqrt(particle_count); i++) {
-            for (int j = 0; j < sqrt(particle_count); j++) {
-                translations[index] = glm::vec2(((float)i / (float)sqrt(particle_count) - 0.5f), (float)j / (float)sqrt(particle_count) - 0.5f);
-                index++;
-            }
-        }
-        
-        for (int i = 0; i < particle_count; i++) {
-            //cout << translations[i][0] << " " << translations[i][1] << endl;
-        }
         // -----------------------------  
 
         // Poll and handle events (inputs, window resize, etc.)
