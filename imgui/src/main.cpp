@@ -249,7 +249,6 @@ int main(int, char**)
         glUseProgram(pId);
         int matrixLocation = glGetUniformLocation(pId, "matrix");
         int offsetsLocation = glGetUniformLocation(pId, "offsets");
-        int p_countLocation = glGetUniformLocation(pId, "particle_count");
 
         if (matrixLocation == -1) {
             cout << "failed to locate uniform [matrixLocation]" << endl;
@@ -257,10 +256,6 @@ int main(int, char**)
 
         if (offsetsLocation == -1) {
             cout << "failed to locate uniform [offsetsLocation]" << endl;
-        }
-
-        if (p_countLocation == -1) {
-            cout << "failed to locate uniform [p_countLocation]" << endl;
         }
 
         float sceneScale = 0.003;
@@ -281,8 +276,6 @@ int main(int, char**)
 
         //send over particle info
         glUniform2fv(offsetsLocation, particle_count, glm::value_ptr(translations[0]));
-        glUniform1i(p_countLocation, particle_count);
-        
         
         // -------------------------------
         

@@ -9,6 +9,6 @@
     void main()                                         
     {                                         
         vec2 offset = offsets[gl_InstanceID];
-        gl_Position = (matrix * vec4(inLocalSpace, 1.0)) + vec4(offset, 0.0f, 0.0f);   
+        gl_Position = matrix * (vec4(inLocalSpace, 1.0) + vec4(offset, 0.0f, 0.0f));   
         vertexPosition = inLocalSpace;
     }
