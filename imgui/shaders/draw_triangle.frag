@@ -2,12 +2,14 @@
     in vec3 vertexPosition;
     out vec4 fragColor;
 
+    const float aRadius = 0.01f;
+    const vec3 baseColor = vec3(0.0f, 0.0f, 1.0f); // blue
+
     void main()
     {
-        float aRadius = 0.01f;
         float dist = distance(vertexPosition.xy, vec2(0.0f, 0.0f));
         if (dist > aRadius)
             discard;
 
-        fragColor = vec4(0.0f, 0.0f, 1.0f, 1.0f); // blue
+        fragColor = vec4(baseColor, 1.0f);
     }

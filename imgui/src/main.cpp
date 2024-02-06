@@ -209,7 +209,7 @@ int main(int, char**)
 #endif
     {
         // SIMULATION STUFF
-        int particle_count = 900; //don't set higher than 900
+        int particle_count = 1000; //don't set higher than 900
         glm::vec2 translations[particle_count];
         simulate(translations, particle_count);
 
