@@ -12,6 +12,7 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <stdio.h>
+#include <cmath>
 #define GL_SILENCE_DEPRECATION
 #define GLFW_INCLUDE_NONE
 #if defined(IMGUI_IMPL_OPENGL_ES2)
@@ -138,10 +139,9 @@ int main(int, char**)
 
     // define a triangle
     float vertices[] = {
-    // vertex data    |   color data
-    -0.866f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-    0.866f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-    0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+    -0.866f, -0.5f, 0.0f,
+    0.866f, -0.5f, 0.0f,
+    0.0f, 1.0f, 0.0f};
 
 
     // create shaders
@@ -194,21 +194,8 @@ int main(int, char**)
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
-    // color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3* sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    // set uniforms
-    // int radiusLocation = glGetUniformLocation(pId, "aRadius");
-    // int centerPosLocation = glGetUniformLocation(pId, "centerPos");
-    // if (radiusLocation == -1 || centerPosLocation == -1) {
-    //     cout << "failed to locate uniform(s)" << endl;
-    // }
-    // glUseProgram(pId);
-    // glUniform1f(radiusLocation, 0.2f);
-    // glUniform2f(centerPosLocation, 0.0f, 0.0f);
 
     // Main loop
 #ifdef __EMSCRIPTEN__
@@ -220,6 +207,23 @@ int main(int, char**)
     while (!glfwWindowShouldClose(window))
 #endif
     {
+        // SIMULATION STUFF
+        int particle_count = 900; //don't set higher than 900
+        glm::vec2 translations[particle_count];
+
+        int index = 0;
+        for (int i = 0; i < sqrt(particle_count); i++) {
+            for (int j = 0; j < sqrt(particle_count); j++) {
+                translations[index] = glm::vec2(((float)i / (float)sqrt(particle_count) - 0.5f), (float)j / (float)sqrt(particle_count) - 0.5f);
+                index++;
+            }
+        }
+        
+        for (int i = 0; i < particle_count; i++) {
+            //cout << translations[i][0] << " " << translations[i][1] << endl;
+        }
+        // -----------------------------  
+
         // Poll and handle events (inputs, window resize, etc.)
         // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
         // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
@@ -242,9 +246,21 @@ int main(int, char**)
         glClear(GL_COLOR_BUFFER_BIT);
 
     // SET UNIFORMS ---------------------------
+        glUseProgram(pId);
         int matrixLocation = glGetUniformLocation(pId, "matrix");
+        int offsetsLocation = glGetUniformLocation(pId, "offsets");
+        int p_countLocation = glGetUniformLocation(pId, "particle_count");
+
         if (matrixLocation == -1) {
-            cout << "failed to locate uniform(s)" << endl;
+            cout << "failed to locate uniform [matrixLocation]" << endl;
+        }
+
+        if (offsetsLocation == -1) {
+            cout << "failed to locate uniform [offsetsLocation]" << endl;
+        }
+
+        if (p_countLocation == -1) {
+            cout << "failed to locate uniform [p_countLocation]" << endl;
         }
 
         float sceneScale = 0.003;
@@ -257,14 +273,20 @@ int main(int, char**)
         glm::vec3(0,0,-1)  // Head is up (set to 0,-1,0 to look upside-down)
         );
 
-        glm::mat4 model = glm::mat4(1.0f); // scale model by 1 and place at (0,0)
+        glm::mat4 mvp = projection * view;
+        
 
-        glm::mat4 mvp = projection * view * model;
-        glUseProgram(pId);
+        //send over matrix info
         glUniformMatrix4fv(matrixLocation, 1, GL_FALSE, &mvp[0][0]);
+
+        //send over particle info
+        glUniform2fv(offsetsLocation, particle_count, glm::value_ptr(translations[0]));
+        glUniform1i(p_countLocation, particle_count);
+        
+        
         // -------------------------------
         
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 3, particle_count);  
         
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
