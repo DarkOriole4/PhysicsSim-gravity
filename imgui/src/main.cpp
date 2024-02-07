@@ -26,6 +26,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <sim_headers.h>
+#include <chrono>
 
 using namespace std;
 
@@ -205,13 +206,22 @@ int main(int, char**)
     io.IniFilename = nullptr;
     EMSCRIPTEN_MAINLOOP_BEGIN
 #else
+    // predefinitions
+    int particle_count = 1000;
+    int target_fps = 144;
+
+    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    float dtime;
+    
+    glm::vec2 translations[particle_count];
+
     while (!glfwWindowShouldClose(window))
 #endif
     {
         // SIMULATION STUFF
-        int particle_count = 1000; //don't set higher than 900
-        glm::vec2 translations[particle_count];
-        simulate(translations, particle_count);
+        framerate_control(start, end, dtime, target_fps); //update the dtime variable and keep the fps steady
+        simulate(translations, particle_count); //calculate and update the particles positions
 
         // -----------------------------  
 
