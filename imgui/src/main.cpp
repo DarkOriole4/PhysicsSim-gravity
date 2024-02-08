@@ -215,13 +215,16 @@ int main(int, char**)
     float dtime;
     
     glm::vec2 translations[particle_count];
+    matter bodies[particle_count];
+    create_start_condition(bodies, particle_count);
+
 
     while (!glfwWindowShouldClose(window))
 #endif
     {
         // SIMULATION STUFF
         framerate_control(start, end, dtime, target_fps); //update the dtime variable and keep the fps steady
-        simulate(translations, particle_count, target_fps); //calculate and update the particles positions
+        simulate(translations, bodies, particle_count, target_fps); //calculate and update the particles positions
 
         // -----------------------------  
 

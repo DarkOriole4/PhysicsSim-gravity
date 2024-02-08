@@ -5,7 +5,16 @@
 #include <iostream>
 #include <chrono>
 
-void simulate(glm::vec2* translations, int particle_count, const int& fps);
+
+struct matter {
+    glm::vec2 position = glm::vec2(0.0f, 0.0f);
+    int mass = 1; // 1 unit represents 10^11 kg
+    float velocity = 0.0f;
+};
+
+void create_start_condition(matter* bodies, const int& particle_count);
+
+void simulate(glm::vec2* translations, matter* bodies, int particle_count, const int& fps);
 
 void framerate_control(std::chrono::high_resolution_clock::time_point& start, std::chrono::high_resolution_clock::time_point& end, float& dtime, const int& target_fps);
 

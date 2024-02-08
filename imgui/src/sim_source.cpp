@@ -28,56 +28,71 @@ void framerate_control (std::chrono::high_resolution_clock::time_point& start, s
 }
 
 
-struct matter {
-    glm::vec2 position = glm::vec2(0.0f, 0.0f);
-    float mass = 0;
-    float velocity = 0;
-};
-
 glm::vec3 center_of_mass(const matter* bodies, const int& skip_index, const int& particle_count) {
-    float x;
-    float y;
-    float total_mass;
+    float x = 0;
+    float y = 0;
+    int total_mass = 0;
 
     for (int i = 0; i < particle_count; i++) {
         if (i != skip_index) {
-            x += (bodies[i].position.x * bodies[i].mass);
-            y += (bodies[i].position.y * bodies[i].mass);
+            x += (bodies[i].position.x * (float) bodies[i].mass);
+            y += (bodies[i].position.y * (float) bodies[i].mass);
             total_mass += bodies[i].mass;
         }
     }
-    return glm::vec3(x / total_mass, y / total_mass, total_mass);
+
+    if (total_mass != 0) {
+        return glm::vec3(x / static_cast<float>(total_mass), y / static_cast<float>(total_mass), total_mass);
+    } else {
+        // Return an arbitrary value indicating no mass if total_mass is zero
+        return glm::vec3(0.0f, 0.0f, 0.0f);
+    }
 }
 
 float distance (const glm::vec2& pos1, glm::vec2& pos2) {
     return sqrt(pow(pos1.x - pos2.x, 2) + pow(pos1.y - pos2.y, 2));
 }
 
+void create_start_condition(matter* bodies, const int& particle_count) {
+    //random start positions
+    int resolution = 1024;
+    float size = 2.0;
 
-void simulate (glm::vec2* translations, int particle_count, const int& fps) {
-    matter bodies[particle_count];
-    const float G = 9.81;
+    std::random_device rd {"/dev/urandom"};
+    static std::uniform_int_distribution<int> d(0, resolution);
+    
+    for (int i = 0; i < particle_count; i++) {
+        float x = ((float) d(rd) / (float) resolution - 0.5) * size;
+        float y = ((float) d(rd) / (float) resolution - 0.5) * size;
+        bodies[i].position = glm::vec2(x, y);
+    }
+}
+
+
+void simulate (glm::vec2* translations, matter* bodies, int particle_count, const int& fps) {
+    const float G = 6.674;
     float r;
     float force;
-    float total_mass;
+    int total_mass;
     glm::vec2 direction;
     glm::vec2 center;
     glm::vec3 center_info;
 
     for (int i = 0; i < particle_count; i++) {
             center_info = center_of_mass(bodies, i, particle_count);
-            center = glm::vec2(center.x, center.y);
+            center = glm::vec2(center_info.x, center_info.y);
             total_mass = center_info.z;
 
             r = distance(bodies[i].position, center);
             if (r != 0) {
-                direction = glm::vec2(center- bodies[i].position) / r;
+                direction = glm::vec2(center - bodies[i].position) / r;
 
                 force = G * ((bodies[i].mass * total_mass) / pow(r, 2));
                 bodies[i].velocity += force / bodies[i].mass / fps;
-                bodies[i].position += bodies[i].velocity * direction;
-            } else {
-                cout << "attempted division by zero" << endl;
+                bodies[i].position += bodies[i].velocity / fps * direction ;
+                std::cout << force << std::endl;
+                std::cout << bodies[i].velocity << std::endl;
+                std::cout << "(" << bodies[i].position.x << ", " << bodies[i].position.y << ")" << std::endl;
             }
         }
 
