@@ -207,7 +207,7 @@ int main(int, char**)
     EMSCRIPTEN_MAINLOOP_BEGIN
 #else
     // predefinitions
-    int particle_count = 1000;
+    int particle_count = 3;
     int target_fps = 144;
 
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
@@ -221,7 +221,7 @@ int main(int, char**)
     {
         // SIMULATION STUFF
         framerate_control(start, end, dtime, target_fps); //update the dtime variable and keep the fps steady
-        simulate(translations, particle_count); //calculate and update the particles positions
+        simulate(translations, particle_count, target_fps); //calculate and update the particles positions
 
         // -----------------------------  
 
