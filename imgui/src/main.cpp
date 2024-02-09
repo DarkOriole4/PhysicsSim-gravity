@@ -210,12 +210,14 @@ int main(int, char**)
     int particle_count = 100;
     int target_fps = 144;
     float sim_speed = 1.0f;
+    float particle_size = 5.0f;
 
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
     float dtime;
     
     glm::vec2 translations[particle_count];
+    float velocities[particle_count];
     matter bodies[particle_count];
     create_start_condition(bodies, particle_count);
 
@@ -225,7 +227,7 @@ int main(int, char**)
     {
         // SIMULATION STUFF
         framerate_control(start, end, dtime, target_fps); //update the dtime variable and keep the fps steady
-        simulate(translations, bodies, particle_count, target_fps, sim_speed); //calculate and update the particles positions
+        simulate(translations, velocities, bodies, particle_count, target_fps, sim_speed); //calculate and update the particles positions and velocities
 
         // -----------------------------  
 
@@ -241,6 +243,9 @@ int main(int, char**)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         
+        int display_w, display_h;
+        glfwGetFramebufferSize(window, &display_w, &display_h);
+
         // DISPLAY SIMULATION INFO
         ImGuiWindowFlags window_flags = 0;
         window_flags |= ImGuiWindowFlags_NoBackground;
@@ -252,6 +257,7 @@ int main(int, char**)
         // etc.
         bool value = true;
         bool* open_ptr = &value;
+        ImGui::SetNextWindowPos(ImVec2(0, 0));
         ImGui::Begin("Metadata Window", open_ptr, window_flags);           
         
         ImGui::SetWindowFontScale(1.3f);
@@ -270,11 +276,13 @@ int main(int, char**)
         window_flags |= ImGuiWindowFlags_NoTitleBar;
         window_flags |= ImGuiWindowFlags_NoResize;
         window_flags |= ImGuiWindowFlags_NoMove;
-        //window_flags |= ImGuiWindowFlags_AlwaysAutoResize;
+        window_flags |= ImGuiWindowFlags_AlwaysAutoResize;
 
         // etc.
+        ImGui::SetNextWindowPos(ImVec2(display_w - 325, 0));
         ImGui::Begin("Settings Window", open_ptr, window_flags);           
         
+        // slider #1
         ImGui::SetWindowFontScale(1.3f);
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
         ImGui::Text("sim_speed");
@@ -285,8 +293,24 @@ int main(int, char**)
         ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.0f, 1.0f, 1.0f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
         ImGui::SetNextItemWidth(200);
-        
         ImGui::SliderFloat(".", &sim_speed, 0.0f, 2.0f);
+        
+        ImGui::PopStyleColor();
+        ImGui::PopStyleColor();
+
+        // slider #2
+        ImGui::SetWindowFontScale(1.3f);
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+        ImGui::Text("particle_size");
+        ImGui::PopStyleColor();
+
+        ImGui::SetWindowFontScale(1.0f);
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.0f, 1.0f, 1.0f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+        ImGui::SetNextItemWidth(200);
+        
+        ImGui::SliderFloat("..", &particle_size, 0.1f, 10.0f);
         
         ImGui::PopStyleColor();
         ImGui::PopStyleColor();
@@ -297,8 +321,6 @@ int main(int, char**)
 
         // Rendering
         ImGui::Render();
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
         
         glClearColor(0.05f, 0.05f, 0.06f, 0); // background color
@@ -308,6 +330,8 @@ int main(int, char**)
         glUseProgram(pId);
         int matrixLocation = glGetUniformLocation(pId, "matrix");
         int offsetsLocation = glGetUniformLocation(pId, "offsets");
+        int veloLocation = glGetUniformLocation(pId, "velocities");
+        int sizeLocation = glGetUniformLocation(pId, "particle_size");
 
         if (matrixLocation == -1) {
             cout << "failed to locate uniform [matrixLocation]" << endl;
@@ -315,6 +339,10 @@ int main(int, char**)
 
         if (offsetsLocation == -1) {
             cout << "failed to locate uniform [offsetsLocation]" << endl;
+        }
+
+        if (veloLocation == -1) {
+            cout << "failed to locate uniform [veloLocation]" << endl;
         }
 
         float sceneScale = 0.003;
@@ -335,6 +363,8 @@ int main(int, char**)
 
         //send over particle info
         glUniform2fv(offsetsLocation, particle_count, glm::value_ptr(translations[0]));
+        glUniform1fv(veloLocation, particle_count, &velocities[0]);
+        glUniform1fv(sizeLocation, 1, &particle_size);
         
         // -------------------------------
         

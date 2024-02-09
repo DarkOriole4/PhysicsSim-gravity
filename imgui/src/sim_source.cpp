@@ -72,7 +72,7 @@ void create_start_condition(matter* bodies, const int& particle_count) {
 }
 
 
-void simulate (glm::vec2* translations, matter* bodies, int particle_count, const int& fps, const float& sim_speed) {
+void simulate (glm::vec2* translations, float* velocities, matter* bodies, int particle_count, const int& fps, const float& sim_speed) {
     const float G = 6.674;
     const float min_radius = 0.5;
 
@@ -116,6 +116,8 @@ void simulate (glm::vec2* translations, matter* bodies, int particle_count, cons
     //export the translations to opengl
     for (int n = 0; n < particle_count ; n++) {
         translations[n] = bodies[n].position / glm::vec2(10.0);
+
+        velocities[n] = glm::length(bodies[n].velocity);
     }
 }
 

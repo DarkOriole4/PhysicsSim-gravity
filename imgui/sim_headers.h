@@ -15,7 +15,7 @@ struct matter {
 
 void create_start_condition(matter* bodies, const int& particle_count);
 
-void simulate(glm::vec2* translations, matter* bodies, int particle_count, const int& fps, const float& sim_speed);
+void simulate(glm::vec2* translations, float* velocities, matter* bodies, int particle_count, const int& fps, const float& sim_speed);
 
 void framerate_control(std::chrono::high_resolution_clock::time_point& start, std::chrono::high_resolution_clock::time_point& end, float& dtime, const int& target_fps);
 

@@ -1,9 +1,13 @@
 #version 330 core
     in vec3 vertexPosition;
+    in float velocity;
+    in float radius;
     out vec4 fragColor;
 
-    const float aRadius = 0.007f;
-    const vec3 baseColor = vec3(0.0f, 1.0f, 1.0f); // blue
+    float aRadius = radius / 1000;
+    const vec3 slowColor = vec3(0.0f, 1.0f, 1.0f);
+    const vec3 fastColor = vec3(1.0f, 1.0f, 0.0f); 
+    vec3 lerpColor;
 
     void main()
     {
@@ -11,5 +15,6 @@
         if (dist > aRadius)
             discard;
 
-        fragColor = vec4(baseColor, 1.0f);
+        lerpColor = mix(slowColor, fastColor, velocity * 2);
+        fragColor = vec4(lerpColor, 1.0f);
     }
