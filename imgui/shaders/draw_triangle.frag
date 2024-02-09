@@ -3,7 +3,7 @@
     out vec4 fragColor;
 
     const float aRadius = 0.007f;
-    const vec3 baseColor = vec3(0.0f, 0.0f, 1.0f); // blue
+    const vec3 baseColor = vec3(0.0f, 1.0f, 1.0f); // blue
 
     void main()
     {

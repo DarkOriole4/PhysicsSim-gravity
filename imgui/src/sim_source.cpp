@@ -12,17 +12,11 @@ using namespace std;
 void framerate_control (std::chrono::high_resolution_clock::time_point& start, std::chrono::high_resolution_clock::time_point& end, float& dtime, const int& target_fps) {
     end = std::chrono::high_resolution_clock::now();
     dtime = (float) std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() / 1000.0f;
-    //std::cout << dtime << std::endl;
 
     float expected_diff = 1.0f / target_fps;
     if (dtime < expected_diff) {
         std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>((expected_diff - dtime) * 1000)));
     }
-
-    //------ I'll come up with a better solution later ---------
-    // auto real_end = std::chrono::high_resolution_clock::now();
-    // float real_dtime = (float) std::chrono::duration_cast<std::chrono::milliseconds>(real_end - start).count() / 1000.0f;
-    // std::cout << real_dtime << std::endl;
 
     start = std::chrono::high_resolution_clock::now();
 }
@@ -55,31 +49,41 @@ float distance (const glm::vec2& pos1, glm::vec2& pos2) {
 
 void create_start_condition(matter* bodies, const int& particle_count) {
     //random start positions
-    int resolution = 1024;
-    float size = 20.0;
+    int resolution = 128;
+    float size = 20.0; // size of the region in which the positions will be placed
 
     std::random_device rd {"/dev/urandom"};
-    static std::uniform_int_distribution<int> d(0, resolution);
+    static std::uniform_int_distribution<int> d1(0, resolution); // for the positions
+    static std::uniform_int_distribution<int> d2(0, 6.28f); // for the angles (0 to 2*PI)
     
     for (int i = 0; i < particle_count; i++) {
-        float x = ((float) d(rd) / (float) resolution - 0.5) * size;
-        float y = ((float) d(rd) / (float) resolution - 0.5) * size;
-        bodies[i].position = glm::vec2(x, y);
+        // set random position
+        float x1 = ((float) d1(rd) / (float) resolution - 0.5) * size;
+        float y1 = ((float) d1(rd) / (float) resolution - 0.5) * size;
+        bodies[i].position = glm::vec2(x1, y1);
+
+        // set random angle
+        float speed_multiplier = 0.01;
+        float phi = (float) d2(rd);
+        float x2 = cos(phi) * speed_multiplier;
+        float y2 = sin(phi) * speed_multiplier;
+        bodies[i].velocity = glm::vec2(x2, y2);
     }
 }
 
 
-void simulate (glm::vec2* translations, matter* bodies, int particle_count, const int& fps) {
+void simulate (glm::vec2* translations, matter* bodies, int particle_count, const int& fps, const float& sim_speed) {
     const float G = 6.674;
-    const float min_radius = 1;
-    const float sim_speed = 0.001;
+    const float min_radius = 0.5;
 
-    float sim_G = G * sim_speed;
+    float sim_G = G / particle_count;
     float r;
     float force;
     matter* m1;
     matter* m2;
     glm::vec2 direction;
+
+    float time_step = sim_speed / fps;
 
     for (int i = 0; i < particle_count; i++) {
         for (int j = 0; j < particle_count; j++) {
@@ -93,14 +97,19 @@ void simulate (glm::vec2* translations, matter* bodies, int particle_count, cons
                     force = sim_G * ((m1->mass * m2->mass) / pow(r, 2));
                     
                     // apply physics step to m1
-                    m1->velocity += force / m1->mass / fps;
-                    m1->position += m1->velocity / fps * direction;
+                    m1->velocity += (force / m1->mass * time_step) * direction;
+                    m1->position += m1->velocity * glm::vec2(time_step);
 
                     // apply physics step to m2
-                    m2->velocity += force / m2->mass / fps;
-                    m2->position += m2->velocity / fps * -direction; //opposite direction
+                    m2->velocity += (force / m2->mass * time_step) * -direction;
+                    m2->position += m2->velocity * glm::vec2(time_step); //opposite direction
+
+                    // debug
+                    // cout << "velocity: " << m1->velocity.x << " " << m1->velocity.y << endl;
+                    // cout << "position: " << m1->position.x << " " << m1->position.y << endl;
+                    // cout << endl;
                 }
-            }
+            }  
         }
     }
 

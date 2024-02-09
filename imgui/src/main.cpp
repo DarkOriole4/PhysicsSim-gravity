@@ -207,8 +207,9 @@ int main(int, char**)
     EMSCRIPTEN_MAINLOOP_BEGIN
 #else
     // predefinitions
-    int particle_count = 1000;
+    int particle_count = 100;
     int target_fps = 144;
+    float sim_speed = 1.0f;
 
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
@@ -224,7 +225,7 @@ int main(int, char**)
     {
         // SIMULATION STUFF
         framerate_control(start, end, dtime, target_fps); //update the dtime variable and keep the fps steady
-        simulate(translations, bodies, particle_count, target_fps); //calculate and update the particles positions
+        simulate(translations, bodies, particle_count, target_fps, sim_speed); //calculate and update the particles positions
 
         // -----------------------------  
 
@@ -240,6 +241,60 @@ int main(int, char**)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         
+        // DISPLAY SIMULATION INFO
+        ImGuiWindowFlags window_flags = 0;
+        window_flags |= ImGuiWindowFlags_NoBackground;
+        window_flags |= ImGuiWindowFlags_NoTitleBar;
+        window_flags |= ImGuiWindowFlags_NoResize;
+        window_flags |= ImGuiWindowFlags_NoMove;
+        //window_flags |= ImGuiWindowFlags_AlwaysAutoResize;
+
+        // etc.
+        bool value = true;
+        bool* open_ptr = &value;
+        ImGui::Begin("Metadata Window", open_ptr, window_flags);           
+        
+        ImGui::SetWindowFontScale(1.3f);
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+        ImGui::Text("particle count : %d", particle_count);
+        ImGui::Text("frametime : %.3f ms", 1000.0f / io.Framerate);
+        ImGui::Text("%.1f fps", io.Framerate);
+        ImGui::PopStyleColor();
+
+        ImGui::End();
+        
+        // INTERACTIVE SIMULATION SETTINGS
+
+        window_flags = 0;
+        window_flags |= ImGuiWindowFlags_NoBackground;
+        window_flags |= ImGuiWindowFlags_NoTitleBar;
+        window_flags |= ImGuiWindowFlags_NoResize;
+        window_flags |= ImGuiWindowFlags_NoMove;
+        //window_flags |= ImGuiWindowFlags_AlwaysAutoResize;
+
+        // etc.
+        ImGui::Begin("Settings Window", open_ptr, window_flags);           
+        
+        ImGui::SetWindowFontScale(1.3f);
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+        ImGui::Text("sim_speed");
+        ImGui::PopStyleColor();
+
+        ImGui::SetWindowFontScale(1.0f);
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.0f, 1.0f, 1.0f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+        ImGui::SetNextItemWidth(200);
+        
+        ImGui::SliderFloat(".", &sim_speed, 0.0f, 2.0f);
+        
+        ImGui::PopStyleColor();
+        ImGui::PopStyleColor();
+        
+
+        ImGui::End();
+
+
         // Rendering
         ImGui::Render();
         int display_w, display_h;
