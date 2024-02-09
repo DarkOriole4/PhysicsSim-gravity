@@ -207,7 +207,7 @@ int main(int, char**)
     EMSCRIPTEN_MAINLOOP_BEGIN
 #else
     // predefinitions
-    int particle_count = 3;
+    int particle_count = 1000;
     int target_fps = 144;
 
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();

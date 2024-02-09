@@ -7,9 +7,10 @@
 
 
 struct matter {
-    glm::vec2 position = glm::vec2(0.0f, 0.0f);
-    int mass = 1; // 1 unit represents 10^11 kg
+    glm::vec2 position = glm::vec2(0.0f);
     float velocity = 0.0f;
+    int mass = 1; // 1 unit represents 10^11 kg
+    
 };
 
 void create_start_condition(matter* bodies, const int& particle_count);

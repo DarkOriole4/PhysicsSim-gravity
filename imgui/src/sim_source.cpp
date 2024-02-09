@@ -56,7 +56,7 @@ float distance (const glm::vec2& pos1, glm::vec2& pos2) {
 void create_start_condition(matter* bodies, const int& particle_count) {
     //random start positions
     int resolution = 1024;
-    float size = 2.0;
+    float size = 20.0;
 
     std::random_device rd {"/dev/urandom"};
     static std::uniform_int_distribution<int> d(0, resolution);
@@ -71,34 +71,42 @@ void create_start_condition(matter* bodies, const int& particle_count) {
 
 void simulate (glm::vec2* translations, matter* bodies, int particle_count, const int& fps) {
     const float G = 6.674;
+    const float min_radius = 1;
+    const float sim_speed = 0.001;
+
+    float sim_G = G * sim_speed;
     float r;
     float force;
-    int total_mass;
+    matter* m1;
+    matter* m2;
     glm::vec2 direction;
-    glm::vec2 center;
-    glm::vec3 center_info;
 
     for (int i = 0; i < particle_count; i++) {
-            center_info = center_of_mass(bodies, i, particle_count);
-            center = glm::vec2(center_info.x, center_info.y);
-            total_mass = center_info.z;
+        for (int j = 0; j < particle_count; j++) {
+            if (i > j) {
+                m1 = &bodies[i];
+                m2 = &bodies[j];
 
-            r = distance(bodies[i].position, center);
-            if (r != 0) {
-                direction = glm::vec2(center - bodies[i].position) / r;
+                r = distance(m1->position, m2->position);
+                if (r > min_radius) {
+                    direction = glm::vec2(m2->position - m1->position) / r; // normalized vector that points from m1 to m2
+                    force = sim_G * ((m1->mass * m2->mass) / pow(r, 2));
+                    
+                    // apply physics step to m1
+                    m1->velocity += force / m1->mass / fps;
+                    m1->position += m1->velocity / fps * direction;
 
-                force = G * ((bodies[i].mass * total_mass) / pow(r, 2));
-                bodies[i].velocity += force / bodies[i].mass / fps;
-                bodies[i].position += bodies[i].velocity / fps * direction ;
-                std::cout << force << std::endl;
-                std::cout << bodies[i].velocity << std::endl;
-                std::cout << "(" << bodies[i].position.x << ", " << bodies[i].position.y << ")" << std::endl;
+                    // apply physics step to m2
+                    m2->velocity += force / m2->mass / fps;
+                    m2->position += m2->velocity / fps * -direction; //opposite direction
+                }
             }
         }
+    }
 
     //export the translations to opengl
-    for (int j = 0; j < particle_count ; j++) {
-        translations[j] = bodies[j].position;
+    for (int n = 0; n < particle_count ; n++) {
+        translations[n] = bodies[n].position / glm::vec2(10.0);
     }
 }
 
