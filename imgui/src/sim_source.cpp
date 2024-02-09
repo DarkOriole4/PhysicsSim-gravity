@@ -103,11 +103,6 @@ void simulate (glm::vec2* translations, float* velocities, matter* bodies, int p
                     // apply physics step to m2
                     m2->velocity += (force / m2->mass * time_step) * -direction;
                     m2->position += m2->velocity * glm::vec2(time_step); //opposite direction
-
-                    // debug
-                    // cout << "velocity: " << m1->velocity.x << " " << m1->velocity.y << endl;
-                    // cout << "position: " << m1->position.x << " " << m1->position.y << endl;
-                    // cout << endl;
                 }
             }  
         }

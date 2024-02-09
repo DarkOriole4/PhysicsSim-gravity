@@ -5,8 +5,8 @@
     out vec4 fragColor;
 
     float aRadius = radius / 1000;
-    const vec3 slowColor = vec3(0.0f, 1.0f, 1.0f);
-    const vec3 fastColor = vec3(1.0f, 1.0f, 0.0f); 
+    const vec3 slowColor = vec3(0.13f, 1.0f, 0.0f);
+    const vec3 fastColor = vec3(1.0f, 0.8f, 0.0f); 
     vec3 lerpColor;
 
     void main()
