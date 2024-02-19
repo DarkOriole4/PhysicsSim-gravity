@@ -5,7 +5,7 @@ The repository includes a framework to build almost any time based animation usi
 ## **DEMO**   
 [GravitySim_DEMO.webm](https://github.com/DarkOriole4/PhysicsSim-gravity/assets/105799574/4f4956cb-1376-46a0-8217-ad83f1786f85)
 
-To experiment with it yourself, download the ./simulation file, and run it using the Linux Terminal
+To experiment with it yourself, download the source files and compile them by typing `make` into the terminal while in the `/imgui/src` directory
 
 ## **Dependencies**   
 install these by typing the following commands into your terminal   
