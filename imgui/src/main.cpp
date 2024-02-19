@@ -115,7 +115,8 @@ int main(int, char**)
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
     // Setup Dear ImGui style
-    ImGui::Spectrum::StyleColorsSpectrum();
+    ImGui::StyleColorsDark();
+    //ImGui::Spectrum::StyleColorsSpectrum();
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -126,7 +127,8 @@ int main(int, char**)
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     // Load Fonts
-    io.Fonts->AddFontFromFileTTF("../misc/fonts/Roboto-Medium.ttf", 16.0f);
+    //io.Fonts->AddFontFromFileTTF("../misc/fonts/Roboto-Medium.ttf", 16.0f);
+    io.Fonts->AddFontDefault();
 
     // OPENGL SHADER SETUP
     
@@ -207,7 +209,7 @@ int main(int, char**)
     EMSCRIPTEN_MAINLOOP_BEGIN
 #else
     // predefinitions
-    int particle_count = 100;
+    int particle_count = 200;
     int target_fps = 144;
     float sim_speed = 1.0f;
     float particle_size = 5.0f;
